@@ -32,8 +32,8 @@ Tras exhaustivas pruebas empíricas en vectores aleatorios y estructurados, las 
 | Métrica | Complejidad Teórica | Exponente Práctico ($k$) | Notas / Comportamiento |
 | :--- | :--- | :--- | :--- |
 | **Mejor Caso** | $O(n)$ | $\approx 1.0$ | Datos completamente ordenados o invertidos de fábrica. |
-| **Caso Promedio** | $O(n\log n^{2})$ | $\approx 1.28$ (Comparaciones)<br>$\approx 1.28$ (Swaps) | Justificado estadísticamente por la reducción de la entropía local en la combinación. |
-| **Peor Caso** | $O(n\log n^{2})$ | — | Patrones de desorden extremo (ej. zigzag) confinados por la recursión. |
+| **Caso Promedio** | $O(n\log^{2}n)$ | $\approx 1.28$ (Comparaciones)<br>$\approx 1.28$ (Swaps) | Justificado estadísticamente por la reducción de la entropía local en la combinación. |
+| **Peor Caso** | $O(n\log^{2}n)$ | — | Patrones de desorden extremo (ej. zigzag) confinados por la recursión. |
 | **Tiempo Real** | — | **$1.11 - 1.19$** | El rendimiento de tiempo real simula curvas $O(n \log n)$ gracias a la óptima afinidad a la caché. |
 | **Memoria** | $O(\log n)$ | — | Memoria adicional limitada estrictamente a la pila recursiva en el peor escenario ($O(1)$ en el mejor). |
 
