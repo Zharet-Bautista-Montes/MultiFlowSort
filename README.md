@@ -27,7 +27,7 @@ El algoritmo transforma la filosofía tradicional de "Divide y Vencerás" en un 
 
 * Se llevó a cabo un análisis minucioso con base en el Teorema Maestro (donde *T(n) = O(n) + 2T(n/2) + O(nlogn)*)
 * Se ejecutaron exhaustivas pruebas empíricas en vectores con diferentes características (Random, Reversed, Almost Sorted, Few Unique, Full ZigZag) y en diferentes tamaños (desde 128 hasta 16384 elementos). 
-* Como resultado, las métricas de crecimiento han demostrado un comportamiento sub-cuadrático de alta eficiencia:
+* Como resultado, las métricas de crecimiento, basadas en el método Log-Log, han demostrado un comportamiento sub-cuadrático de alta eficiencia:
 
 | Métrica | Complejidad Teórica | Exponente Práctico ($k$) | Notas / Comportamiento |
 | :--- | :--- | :--- | :--- |
