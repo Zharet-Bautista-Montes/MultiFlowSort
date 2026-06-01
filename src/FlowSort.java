@@ -9,7 +9,7 @@ public class FlowSort
 	//{'C', 'A', 'P', 'M', 'E', 'T', 'B', 'S', 'R', 'D', 'L', 'V', 'G', 'F', 'I', 'H', 'O', 'N', 'J', 'Z', 'Q', 'U', 'Y', 'K', 'W', 'X', '9', '4', '1', '3', '0', '5', '7', '2', '6', '8' }
 	//{'Z', 'Y', 'X', 'W', 'V', 'U', 'T', 'S', 'R', 'Q', 'P', 'O', 'N', 'M', 'L', 'K', 'J', 'I', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0' }
 	//{'Z', '0', 'Y', '1', 'X', '2', 'W', '3', 'V', '4', 'U', '5', 'T', '6', 'S', '7', 'R', '8', 'Q', '9', 'P', 'A', 'O', 'B', 'N', 'C', 'M', 'D', 'L', 'E', 'K', 'F', 'J', 'G', 'I', 'H' } Nightmare case
-	public static char[] vector = { 'Z', '0', 'Y', '1', 'X', '2', 'W', '3', 'V', '4', 'U', '5', 'T', '6', 'S', '7', 'R', '8', 'Q', '9', 'P', 'A', 'O', 'B', 'N', 'C', 'M', 'D', 'L', 'E', 'K', 'F', 'J', 'G', 'I', 'H' }; 
+	public static char[] vector = { 'Z', 'Y', 'X', 'W', 'V', 'U', 'T', 'S', 'R', 'Q', 'P', 'O', 'N', 'M', 'L', 'K', 'J', 'I', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0' }; 
 	public static int[] testarray;
 	public static int streams;
 	public static int comparisons;
@@ -64,7 +64,7 @@ public class FlowSort
 		ArrayList<Integer> swaplist = new ArrayList<Integer>();
 		ArrayList<Integer> timelist = new ArrayList<Integer>();
 		System.out.println("Length\tCompars\tSwaps\tSorted\tTime");
-		for(int x = 8; x <= 50000; x *= 2)
+		for(int x = 8; x <= 20000; x *= 2)
 		{
 			testarray = IntStream.generate(() -> new Random().nextInt(100)).limit(x).toArray();
 			int[] refarray = testarray.clone();
@@ -72,7 +72,9 @@ public class FlowSort
 			long start = System.nanoTime();
 			mfs.flowSort(testarray, false);
 			long end = System.nanoTime();
+			//Clean and check results
 			boolean validator = mfs.isSorted(testarray.length-1);
+			comparisons -= 2*(testarray.length-1);
 			String sorted = validator == true ? "Yes" : "No";
 			comparlist.add(comparisons);
 			swaplist.add(swaps);
@@ -95,12 +97,54 @@ public class FlowSort
 	
 	public void flowSort(int[] arrayed, boolean verbose)
 	{
-		int top = 0;
+		int aux, top = 0;
 		int btm = arrayed.length-1;
-		//Control ascending or descending flows to optimize recursion
-		int aux = reverseContraryFlow(btm, 1, top);
-		if (top == aux || btm-top <= 1) return;
-		else recursiveFlowSort(arrayed, verbose, top, btm);
+		if(top == btm) return; //Ignore 1-element subarrays
+		else if(btm-top == 1 && less(btm, top)) exch(top, btm); //Handle 2-element subarrays
+		else 
+		{
+			boolean oslever;
+			while(true)
+			{
+				//Overlap every parallel fluxes found upstream
+				aux = top; oslever = false; int a1 = top;
+				for(int a2 = top; a2 < btm; a2++)
+				{
+					if(less(a2+1, a2) || a2+1 == btm)
+					{
+						if(oslever)
+						{
+							oslever = false; aux = a2+1;
+							aux = overlapParallelFlows(a2, 1, a1); streams++; 
+							if (top == aux) return;
+						}
+						else
+						{	a1 = aux; oslever = true;	}
+					}
+				}
+				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap upstream)", true); 
+				streams++; if (top == aux) return;
+				
+				//Overlap every parallel fluxes found downstream
+				aux = btm; oslever = false; int z1 = btm;
+				for(int z2 = btm; z2 > top; z2--)
+				{
+					if(less(z2, z2-1) || z2-1 == top)
+					{
+						if(oslever)
+						{
+							oslever = false; aux = z2-1;
+							aux = overlapParallelFlows(z2, -1, z1); streams++; 
+							if (btm == aux) return;
+						}
+						else
+						{	z1 = aux; oslever = true;	}
+					}
+				}
+				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap downstream)", true); 
+				streams++; if (btm == aux) return;
+			}
+		}
 	}
 
 	public void recursiveFlowSort(int[] arrayed, boolean verbose, int top, int btm) 
@@ -177,7 +221,7 @@ public class FlowSort
 	
 	private int overlapParallelFlows(int limit, int dir, int aux)
 	{
-		boolean endOPF, startOPF, oslever = false; 
+		boolean endOPF, startOPF; 
 		int end, start, u = aux, tht = -1;
 		while(dir == 1 ? u < limit : u > limit)
 		{
@@ -194,21 +238,23 @@ public class FlowSort
 			}
 			if(tht != -1) //Marked
 			{
-				if(oslever && (tht == aux || endOPF || u == limit || startOPF))
+				if(tht == aux || endOPF || u == limit || startOPF)
 				{
-					if(end-start == 1) exch(end, start); 
-					else reverse(start, end);  
+					int m = (end - start + 1) / 2;
+					for(int n = 0; n < m; n++)
+						exch(start+n, end-m+n+1); 
 					aux = u; tht = -1;
-					if(startOPF) oslever = false; 
 				}
 				else tht -= dir;
 			}
-			else if(startOPF) 
-			{ 
-				if(oslever) oslever = false;
-				else { oslever = true; tht = u;}
-			} 
+			else if(startOPF) tht = u; 
 			u += dir; 
+		}
+		if(tht != -1)
+		{
+			if(dir == 1 && less(u, u-1)) exch(u, u-1);
+			else if(dir == -1 && less(u+1, u)) exch(u+1, u);
+			aux = u;
 		}
 		return aux;
 	}

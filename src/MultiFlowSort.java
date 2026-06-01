@@ -18,7 +18,7 @@ public class MultiFlowSort
 
 	public static void main(String[] args) 
 	{
-		MultiFlowSort dfs = new MultiFlowSort();
+		MultiFlowSort mfs = new MultiFlowSort();
 		modesetter = new Scanner(System.in);
 		boolean running = true;
 		while(running)
@@ -28,11 +28,11 @@ public class MultiFlowSort
 			String mode = modesetter.next();
 			if(mode.equals("C"))
 			{
-				charMode(dfs);
+				charMode(mfs);
 			}
 			else if(mode.equals("I"))
 			{
-				integerMode(dfs);
+				integerMode(mfs);
 			}
 			else if(mode.equals("E"))
 			{
@@ -42,15 +42,19 @@ public class MultiFlowSort
 		}
 	}
 	
-	public static void charMode(MultiFlowSort fs)
+	public static void charMode(MultiFlowSort mfs)
 	{
 		streams = 0; comparisons = 0; swaps = 0;
 		testarray = new String(vector).chars().toArray();
 		printArray(testarray, "(Unsorted input)", true);
 		long start = System.nanoTime();
-		fs.fluxSort(testarray, true, 0, testarray.length-1, true);
+		mfs.multiFlowSort(testarray, true, 0, testarray.length-1, true);
 		long end = System.nanoTime();
-		if(fs.isSorted(testarray.length)) printArray(testarray, "(Sorted output)", true);
+		if(mfs.isSorted(testarray.length-1)) 
+		{
+			comparisons -= 2*(testarray.length-1);
+			printArray(testarray, "(Sorted output)", true);
+		}
 		System.out.println("Comparisons performed: " + comparisons);
 		System.out.println("Swaps performed: " + swaps);
 		System.out.println("Needed streams: " + streams);
@@ -58,7 +62,7 @@ public class MultiFlowSort
 		System.out.println("----------------------------------------------");
 	}
 	
-	public static void integerMode(MultiFlowSort fs)
+	public static void integerMode(MultiFlowSort mfs)
 	{
 		ArrayList<Integer> comparlist = new ArrayList<Integer>();
 		ArrayList<Integer> swaplist = new ArrayList<Integer>();
@@ -66,13 +70,16 @@ public class MultiFlowSort
 		System.out.println("Length\tCompars\tSwaps\tSorted\tTime");
 		for(int x = 128; x <= 100000; x *= 2)
 		{
+			//Create load of test arrays
 			testarray = IntStream.generate(() -> new Random().nextInt(100)).limit(x).toArray();
 			int[] refarray = testarray.clone();
 			streams = 0; comparisons = 0; swaps = 0;
 			long start = System.nanoTime();
-			fs.fluxSort(testarray, false, 0, testarray.length-1, true);
+			mfs.multiFlowSort(testarray, false, 0, testarray.length-1, true);
 			long end = System.nanoTime();
-			boolean validator = fs.isSorted(testarray.length-1);
+			//Clean and check results
+			boolean validator = mfs.isSorted(testarray.length-1);
+			comparisons -= 2*(testarray.length-1);
 			String sorted = validator == true ? "Yes" : "No";
 			comparlist.add(comparisons);
 			swaplist.add(swaps);
@@ -83,6 +90,7 @@ public class MultiFlowSort
 			System.gc();
 		}
 		double comparlog = 0.0, swaplog = 0.0, timelog = 0.0;
+		//Obtain k coefficients to measure increasing factor
 		for(int r = 1; r < timelist.size(); r++)
 		{
 			comparlog += (Math.log10(comparlist.get(r)) - Math.log10(comparlist.get(r-1)))/Math.log10(2);
@@ -94,48 +102,48 @@ public class MultiFlowSort
 		System.out.println((timelog/(timelist.size()-1)) + " Logarithmic k for time");
 	}
 
-	public void fluxSort(int[] arrayed, boolean verbose, int top, int btm, boolean upstream) 
+	public void multiFlowSort(int[] arrayed, boolean verbose, int top, int btm, boolean upstream) 
 	{
-		int aux = top;
-		int half = (int) (btm-top)/2;
-		if(half >= 1)
+		if(top == btm) return; //Ignore 1-element subarrays
+		else if(btm-top == 1 && less(btm, top)) exch(top, btm); //Handle 2-element subarrays
+		else 
 		{
+			int aux = top;
+			int half = (int) (btm-top)/2;
 			//Control ascending or descending flows to optimize recursion
 			if(upstream)
 			{
 				//Reverse every contrary flux found upstream
-				aux = reverseContraryFlow(btm, 1, top); btm = aux; streams++; 
+				aux = reverseContraryFlows(btm, 1, top); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Reverse upstream)", true);
-				if (top == aux || btm-top <= 1) return;
+				btm = aux; streams++; if (top == aux) return;
 			}
 			else
 			{
 				//Reverse every contrary flux downstream
-				aux = reverseContraryFlow(top, -1, btm); top = aux; streams++; 
+				aux = reverseContraryFlows(top, -1, btm); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Reverse downstream)", true);
-				if (btm == aux || btm-top <= 1) return;
+				top = aux; streams++; if (btm == aux) return;
 			}
 			//Now perform recursion to handle parallel flows
-			fluxSort(arrayed, verbose, top, top+half, !upstream);
-			fluxSort(arrayed, verbose, btm-half, btm, !upstream);
+			multiFlowSort(arrayed, verbose, top, top+half, !upstream);
+			multiFlowSort(arrayed, verbose, btm-half, btm, !upstream);
 			while(true)
 			{
 				//Overlap every parallel fluxes found upstream
-				aux = overlapParallelFlows(btm, 1, top); streams++; 
+				aux = overlapParallelFlows(btm, 1, top); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap upstream)", true); 
-				if (top == aux || btm-top <= 1) return;
+				btm = aux; streams++; if (top == aux) return;
 	
 				//Overlap every parallel fluxes found downstream
-				aux = overlapParallelFlows(top, -1, btm); streams++; 
+				aux = overlapParallelFlows(top, -1, btm); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap downstream)", true); 
-				if (btm == aux || btm-top <= 1) return;
+				top = aux; streams++; if (btm == aux) return;
 			} 
 		}
-		else if(less(btm, top)) exch(top, btm);
-		else return;
 	}
 	
-	private int reverseContraryFlow(int limit, int dir, int aux)
+	private int reverseContraryFlows(int limit, int dir, int aux)
 	{
 		boolean endRCF, startRCF; 
 		int end, start, i = aux, tht = -1;
@@ -201,6 +209,12 @@ public class MultiFlowSort
 			else if(startOPF) tht = u; 
 			u += dir; 
 		}
+		if(tht != -1) //Still a reversion at the corner
+		{
+			if(dir == 1 && less(u, u-1)) exch(u, u-1);
+			else if(dir == -1 && less(u+1, u)) exch(u+1, u);
+			aux = u;
+		}
 		return aux;
 	}
 
@@ -226,7 +240,7 @@ public class MultiFlowSort
 	
 	private boolean isSorted(int arraylength)
 	{
-		for(int n=0; n<arraylength-1; n++)
+		for(int n=0; n<arraylength; n++)
 			if(!less(n, n+1) && less(n+1, n))
 				return false;
 		return true;
