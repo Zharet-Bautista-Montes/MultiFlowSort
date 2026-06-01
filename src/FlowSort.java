@@ -164,7 +164,7 @@ public class FlowSort
 				if (top == aux || btm-top <= 1) return;
 				
 				//Reverse every contrary flux downstream
-				aux = reverseContraryFlow(top, -1, btm); top = aux; streams++; 
+				aux = reverseContraryFlows(top, -1, btm); top = aux; streams++; 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Reverse downstream)", true);
 				if (btm == aux || btm-top <= 1) return;
 	
@@ -174,7 +174,7 @@ public class FlowSort
 				if (btm == aux || btm-top <= 1) return;
 				
 				//Reverse every contrary flux found upstream
-				aux = reverseContraryFlow(btm, 1, top); btm = aux; streams++; 
+				aux = reverseContraryFlows(btm, 1, top); btm = aux; streams++; 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Reverse upstream)", true);
 				if (top == aux || btm-top <= 1) return;
 			} 
@@ -183,7 +183,7 @@ public class FlowSort
 		else return;
 	}
 	
-	private int reverseContraryFlow(int limit, int dir, int aux)
+	private int reverseContraryFlows(int limit, int dir, int aux)
 	{
 		boolean endRCF, startRCF; 
 		int end, start, i = aux, tht = -1;
