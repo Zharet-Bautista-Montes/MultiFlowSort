@@ -71,15 +71,17 @@ public class MultiFlowSort
 		for(int x = 128; x <= 100000; x *= 2)
 		{
 			//Create load of test arrays
-			testarray = IntStream.generate(() -> new Random().nextInt(100)).limit(x).toArray();
+			final int range = x;
+			testarray = IntStream.generate(() -> new Random().nextInt(range)).limit(x).toArray();
+			final int arrayspace = testarray.length-1;
 			int[] refarray = testarray.clone();
 			streams = 0; comparisons = 0; swaps = 0;
 			long start = System.nanoTime();
-			mfs.multiFlowSort(testarray, false, 0, testarray.length-1, true);
+			mfs.multiFlowSort(testarray, false, 0, arrayspace, true);
 			long end = System.nanoTime();
 			//Clean and check results
-			boolean validator = mfs.isSorted(testarray.length-1);
-			comparisons -= 2*(testarray.length-1);
+			boolean validator = mfs.isSorted(arrayspace);
+			comparisons -= 2*arrayspace;
 			String sorted = validator == true ? "Yes" : "No";
 			comparlist.add(comparisons);
 			swaplist.add(swaps);
@@ -116,14 +118,14 @@ public class MultiFlowSort
 				//Reverse every contrary flux found upstream
 				aux = reverseContraryFlows(btm, 1, top); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Reverse upstream)", true);
-				btm = aux; streams++; if (top == aux) return;
+				btm = aux - 1; streams++; if (top == aux) return;
 			}
 			else
 			{
 				//Reverse every contrary flux downstream
 				aux = reverseContraryFlows(top, -1, btm); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Reverse downstream)", true);
-				top = aux; streams++; if (btm == aux) return;
+				top = aux + 1; streams++; if (btm == aux) return;
 			}
 			//Now perform recursion to handle parallel flows
 			multiFlowSort(arrayed, verbose, top, top+half, !upstream);
@@ -133,12 +135,12 @@ public class MultiFlowSort
 				//Overlap every parallel fluxes found upstream
 				aux = overlapParallelFlows(btm, 1, top); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap upstream)", true); 
-				btm = aux; streams++; if (top == aux) return;
+				btm = aux - 1; streams++; if (top == aux) return;
 	
 				//Overlap every parallel fluxes found downstream
 				aux = overlapParallelFlows(top, -1, btm); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap downstream)", true); 
-				top = aux; streams++; if (btm == aux) return;
+				top = aux + 1; streams++; if (btm == aux) return;
 			} 
 		}
 	}
@@ -172,7 +174,7 @@ public class MultiFlowSort
 					if(endRCF) i -= dir;
 				}
 			}
-			else if(i != limit && startRCF) tht = i;
+			else if(startRCF) tht = i;
 			i += dir;
 		}
 		return aux;
@@ -182,17 +184,19 @@ public class MultiFlowSort
 	{
 		boolean endOPF, startOPF; 
 		int end, start, u = aux, tht = -1;
-		while(dir == 1 ? u < limit : u > limit)
+		while(dir == 1 ? u <= limit : u >= limit)
 		{
 			endOPF = true; startOPF = false;
 			if(dir == 1)
 			{ 
-				end = u; start = tht; startOPF = less(u+1, u);
+				end = u; start = tht; 
+				if(u < limit) startOPF = less(u+1, u);
 				if(tht != -1 && tht != aux) { endOPF = !less(u+1, tht-1); }
 			}
 			else
 			{ 
-				end = tht; start = u; startOPF = less(u, u-1);
+				end = tht; start = u; 
+				if(u > limit) startOPF = less(u, u-1);
 				if(tht != -1 && tht != aux) { endOPF = !less(tht+1, u-1); }
 			}
 			if(tht != -1) //Marked
@@ -208,12 +212,6 @@ public class MultiFlowSort
 			}
 			else if(startOPF) tht = u; 
 			u += dir; 
-		}
-		if(tht != -1) //Still a reversion at the corner
-		{
-			if(dir == 1 && less(u, u-1)) exch(u, u-1);
-			else if(dir == -1 && less(u+1, u)) exch(u+1, u);
-			aux = u;
 		}
 		return aux;
 	}
@@ -234,8 +232,7 @@ public class MultiFlowSort
 
 	private void reverse(int e, int o) 
 	{
-		while (e < o) 
-			exch(e++, o--); 
+		while (e < o) exch(e++, o--); 
 	}
 	
 	private boolean isSorted(int arraylength)

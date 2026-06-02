@@ -1,6 +1,6 @@
 # MultiFlowSort 🚀
 
-**MultiFlowSort** es un algoritmo de ordenamiento híbrido, recursivo y altamente adaptativo diseñado para operar de manera *in-place* (con un uso de memoria adicional estrictamente acotado). A través de un enfoque bidireccional, el algoritmo identifica, aísla y procesa dinámicamente flujos ordenados (tanto ascendentes como descendentes), minimizando la fricción de comparaciones e intercambios redundantes en la jerarquía de memoria del hardware moderno. 
+**MultiFlowSort** es un algoritmo de ordenamiento híbrido, recursivo y altamente adaptativo diseñado para operar de manera *in-place* (con un uso de memoria adicional estrictamente acotado a la recursión). A través de un enfoque bidireccional, el algoritmo identifica, aísla y procesa dinámicamente flujos ordenados (tanto ascendentes como descendentes), minimizando la fricción de comparaciones e intercambios redundantes en la jerarquía de memoria del hardware moderno. 
 
 ---
 
