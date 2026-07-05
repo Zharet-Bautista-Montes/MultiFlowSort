@@ -207,7 +207,7 @@ public class FlowSort
 				if(i == limit || endRCF)
 				{
 					if(end-start == 1) exch(end, start); 
-					else reverse(start, end);  
+					else while (start < end) exch(start++, end--);   
 					aux = i; tht = -1; 
 					if(i == limit) i += dir;
 				}
@@ -271,12 +271,6 @@ public class FlowSort
 		testarray[a] = testarray[z]; 
 		testarray[z] = temp; 
 		swaps++;
-	}
-
-	private void reverse(int e, int o) 
-	{
-		while (e < o) 
-			exch(e++, o--); 
 	}
 	
 	private boolean isSorted(int arraylength)

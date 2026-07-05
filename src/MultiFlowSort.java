@@ -112,6 +112,8 @@ public class MultiFlowSort
 		{
 			int aux = top;
 			int half = (int) (btm-top)/2;
+			int lhalf = top+half, rhalf = btm-half;
+			if(lhalf == rhalf) lhalf--;
 			//Control ascending or descending flows to optimize recursion
 			if(upstream)
 			{
@@ -128,20 +130,27 @@ public class MultiFlowSort
 				top = aux + 1; streams++; if (btm == aux) return;
 			}
 			//Now perform recursion to handle parallel flows
-			multiFlowSort(arrayed, verbose, top, top+half, !upstream);
-			multiFlowSort(arrayed, verbose, btm-half, btm, !upstream);
-			while(true)
+			multiFlowSort(arrayed, verbose, top, lhalf, !upstream);
+			multiFlowSort(arrayed, verbose, rhalf, btm, !upstream);
+			//Perform overlap only if the right half is lower than the left half
+			if(less(rhalf, lhalf))
 			{
-				//Overlap every parallel fluxes found upstream
-				aux = overlapParallelFlows(btm, 1, top); 
+				aux = overlapParallelFlows(btm, 1, lhalf); 
 				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap upstream)", true); 
 				btm = aux - 1; streams++; if (top == aux) return;
-	
-				//Overlap every parallel fluxes found downstream
-				aux = overlapParallelFlows(top, -1, btm); 
-				if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap downstream)", true); 
-				top = aux + 1; streams++; if (btm == aux) return;
-			} 
+				while(true)
+				{
+					//Overlap every parallel fluxes found upstream
+					aux = overlapParallelFlows(btm, 1, top); 
+					if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap upstream)", true); 
+					btm = aux - 1; streams++; if (top == aux) return;
+		
+					//Overlap every parallel fluxes found downstream
+					aux = overlapParallelFlows(top, -1, btm); 
+					if (verbose) printArray(arrayed, "[" + top + "-" + btm + "] " + "(Overlap downstream)", true); 
+					top = aux + 1; streams++; if (btm == aux) return;
+				} 
+			}
 		}
 	}
 	
@@ -169,7 +178,7 @@ public class MultiFlowSort
 				if(i == limit || endRCF)
 				{
 					if(end-start == 1) exch(end, start); 
-					else reverse(start, end);  
+					else while (start < end) exch(start++, end--);   
 					aux = i; tht = -1; 
 					if(endRCF) i -= dir;
 				}
@@ -190,14 +199,22 @@ public class MultiFlowSort
 			if(dir == 1)
 			{ 
 				end = u; start = tht; 
-				if(u < limit) startOPF = less(u+1, u);
-				if(tht != -1 && tht != aux) { endOPF = !less(u+1, tht-1); }
+				if(u < limit)
+				{
+					startOPF = less(u+1, u);
+					if(tht != -1 && tht != aux)
+						endOPF = !less(u+1, tht-1);
+				}
 			}
 			else
 			{ 
 				end = tht; start = u; 
-				if(u > limit) startOPF = less(u, u-1);
-				if(tht != -1 && tht != aux) { endOPF = !less(tht+1, u-1); }
+				if(u > limit)
+				{
+					startOPF = less(u, u-1);
+					if(tht != -1 && tht != aux) 
+						endOPF = !less(tht+1, u-1);
+				}
 			}
 			if(tht != -1) //Marked
 			{
@@ -228,11 +245,6 @@ public class MultiFlowSort
 		testarray[a] = testarray[z]; 
 		testarray[z] = temp; 
 		swaps++;
-	}
-
-	private void reverse(int e, int o) 
-	{
-		while (e < o) exch(e++, o--); 
 	}
 	
 	private boolean isSorted(int arraylength)

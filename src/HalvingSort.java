@@ -114,24 +114,26 @@ public class HalvingSort
 	
 	private void halve(int l, int r, boolean verbose)
 	{
-		int half = (int) (r-l)/2;
-		if(half >= 1)
+		if(l == r) return;
+		else if(r-l == 1 && less(r, l)) exch(l, r);   	
+		else
 		{
-			halve(l, l+half, verbose); streams++;
-			if (verbose) printArray(testarray, "(Halved from " + l + " to " + (l+half) + ")", verbose);
-			halve(r-half, r, verbose); streams++;
-			if (verbose) printArray(testarray, "(Halved from " + (r-half) + " to " + r + ")", verbose);
+			int half = (int) (r-l)/2;
+			int m1 = l+half, m2 = r-half;
+			halve(l, m1, verbose); streams++;
+			halve(m2, r, verbose); streams++;
+			//Reversing version
 			for (int n = half; n >= 0; n--)
 				if(less(r-n, l+n))
 					exch(l+n, r-n);
-			streams++;
+			//Overlapping version 
+//			for (int m = l; m <= m1 && m2+m <= r; m++)
+//				if(less(m2+m, m))
+//					exch(m, m2+m);
 			if (verbose) printArray(testarray, "(Halved from " + l + " to " + r + ")", verbose);
-			halve(l, l+half, verbose); streams++;
-			if (verbose) printArray(testarray, "(Halved from " + l + " to " + (l+half) + ")", verbose);
-			halve(r-half, r, verbose); streams++;
-			if (verbose) printArray(testarray, "(Halved from " + (r-half) + " to " + r + ")", verbose);
+			halve(l, m1, verbose); streams++;
+			halve(m2, r, verbose); streams++;
 		}
-		else if(less(r, l)) exch(l, r);
 	}
 	
 	private boolean isSorted(int arraylength)
