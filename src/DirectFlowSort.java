@@ -1,12 +1,11 @@
-public class MultiFlowSort extends BaseSort
+public class DirectFlowSort extends BaseSort
 {
-	@Override
 	protected void performSort()
 	{
-		multiFlowSort(0, testarray.length-1, true); 
+		directFlowSort(0, testarray.length-1, true); 
 	}
 	
-	public void multiFlowSort(int top, int btm, boolean upstream) 
+	public void directFlowSort(int top, int btm, boolean upstream) 
 	{
 		if(top == btm) return; //Ignore 1-element subarrays
 		else if(btm-top == 1 && less(btm, top)) exch(top, btm); //Handle 2-element subarrays
@@ -32,8 +31,8 @@ public class MultiFlowSort extends BaseSort
 				top = aux + 1; streams++; if (btm == aux) return;
 			}
 			//Now perform recursion to handle parallel flows
-			multiFlowSort(top, lhalf, !upstream);
-			multiFlowSort(rhalf, btm, !upstream);
+			directFlowSort(top, lhalf, !upstream);
+			directFlowSort(rhalf, btm, !upstream);
 			//Perform overlap only if the right half is lower than the left half
 			if(less(rhalf, lhalf))
 			{

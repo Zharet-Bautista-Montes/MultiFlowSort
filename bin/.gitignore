@@ -3,3 +3,6 @@
 /MultiFlowSort.class
 /NaiveFluxSort.class
 /SmartInsertionSort.class
+/TestManager.class
+/BaseSort.class
+/DirectFlowSort.class
